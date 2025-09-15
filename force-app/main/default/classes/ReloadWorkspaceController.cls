@@ -176,7 +176,11 @@ public with sharing class ReloadWorkspaceController {
     matches.sort();
 
     if (matches.size() > queryLimit) {
-      return matches.subList(0, queryLimit);
+      List<TargetObjectOption> limitedMatches = new List<TargetObjectOption>();
+      for (Integer i = 0; i < queryLimit; i++) {
+        limitedMatches.add(matches[i]);
+      }
+      return limitedMatches;
     }
 
     return matches;
