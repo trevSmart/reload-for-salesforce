@@ -31,6 +31,7 @@ export default class ReloadWorkbench extends LightningElement {
 
   selectedBatchId;
   selectedStagingId;
+  formSubmitRequested = false;
 
   batchColumns = [
     { label: "Batch", fieldName: "Name", type: "text" },
@@ -187,6 +188,25 @@ export default class ReloadWorkbench extends LightningElement {
     if (this.wiredBatchesResult) {
       refreshApex(this.wiredBatchesResult);
     }
+  }
+
+  handleCreateBatchClick() {
+    this.formSubmitRequested = true;
+    const form = this.template.querySelector("lightning-record-edit-form");
+    if (form) {
+      form.submit();
+    } else {
+      this.formSubmitRequested = false;
+    }
+  }
+
+  handleBatchSubmit(event) {
+    if (!this.formSubmitRequested) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+    this.formSubmitRequested = false;
   }
 
   resetSelections() {
