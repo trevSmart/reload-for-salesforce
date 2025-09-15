@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Sequence__c</fullName>
-    <description>Display order for the field when rendering in user interfaces.</description>
+    <description
+  >Display order for the field when rendering in user interfaces.</description>
     <externalId>false</externalId>
     <label>Sequence</label>
     <precision>10</precision>

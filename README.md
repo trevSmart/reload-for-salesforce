@@ -11,11 +11,11 @@ Reload for Salesforce és una Lightning App empaquetable que centralitza la conf
 
 ## Model de dades
 
-| Objecte | Descripció | Camps destacats |
-| --- | --- | --- |
-| `Reload_Batch__c` | Agrupa la càrrega en lots i desa el context de l'origen i l'estat global. | Target Object API, Default Operation, Source Type, comptadors i notes |
-| `Reload_Staging__c` | Registre intermig amb payload dinàmic i metadades de processament. | Batch, Status, Record Action, Payload, Error Message |
-| `Reload_Field_Value__c` | Parell camp-valor vinculat a cada registre estagiat per editar-lo fàcilment. | Field API Name, Field Type, Field Value, Is Key |
+| Objecte                 | Descripció                                                                   | Camps destacats                                                       |
+| ----------------------- | ---------------------------------------------------------------------------- | --------------------------------------------------------------------- |
+| `Reload_Batch__c`       | Agrupa la càrrega en lots i desa el context de l'origen i l'estat global.    | Target Object API, Default Operation, Source Type, comptadors i notes |
+| `Reload_Staging__c`     | Registre intermig amb payload dinàmic i metadades de processament.           | Batch, Status, Record Action, Payload, Error Message                  |
+| `Reload_Field_Value__c` | Parell camp-valor vinculat a cada registre estagiat per editar-lo fàcilment. | Field API Name, Field Type, Field Value, Is Key                       |
 
 ## Components i metadades incloses
 
