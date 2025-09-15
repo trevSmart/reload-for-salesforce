@@ -90,10 +90,14 @@ private class ReloadWorkspaceControllerTest {
   @IsTest
   static void testSearchTargetObjects() {
     Test.startTest();
-    List<ReloadWorkspaceController.TargetObjectOption> accountResults =
-      ReloadWorkspaceController.searchTargetObjects('Acc', 10);
-    List<ReloadWorkspaceController.TargetObjectOption> limitedResults =
-      ReloadWorkspaceController.searchTargetObjects(null, 1);
+    List<ReloadWorkspaceController.TargetObjectOption> accountResults = ReloadWorkspaceController.searchTargetObjects(
+      'Acc',
+      10
+    );
+    List<ReloadWorkspaceController.TargetObjectOption> limitedResults = ReloadWorkspaceController.searchTargetObjects(
+      null,
+      1
+    );
     Test.stopTest();
 
     System.assert(
@@ -106,7 +110,11 @@ private class ReloadWorkspaceControllerTest {
       if (option.apiName == 'Account') {
         foundAccount = true;
         System.assertNotEquals(null, option.label, 'Label should be provided');
-        System.assertNotEquals(null, option.iconName, 'Icon should be provided');
+        System.assertNotEquals(
+          null,
+          option.iconName,
+          'Icon should be provided'
+        );
       }
     }
     System.assert(foundAccount, 'Account should appear in the search results');

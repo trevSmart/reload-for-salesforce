@@ -51,7 +51,9 @@
                     {targetObjectFieldLabel}
                   </label>
                   <div class="slds-form-element__control">
-                    <div class="slds-combobox_container slds-has-inline-listbox">
+                    <div
+                      class="slds-combobox_container slds-has-inline-listbox"
+                    >
                       <div
                         class={targetLookupComboboxClass}
                         role="combobox"
@@ -60,7 +62,9 @@
                       >
                         <template if:true={hasTargetObjectSelection}>
                           <div class="slds-combobox__form-element" role="none">
-                            <div class="slds-listbox slds-listbox_inline slds-pill-container">
+                            <div
+                              class="slds-listbox slds-listbox_inline slds-pill-container"
+                            >
                               <span class="slds-pill slds-pill_link">
                                 <span class="slds-pill__label">
                                   {targetObjectSelection.label}
@@ -117,9 +121,19 @@
                           id="target-object-lookup-listbox"
                           if:true={targetLookupDropdownVisible}
                         >
-                          <ul class="slds-listbox slds-listbox_vertical" role="presentation">
-                            <template for:each={targetLookupOptions} for:item="option">
-                              <li key={option.apiName} role="presentation" class="slds-listbox__item">
+                          <ul
+                            class="slds-listbox slds-listbox_vertical"
+                            role="presentation"
+                          >
+                            <template
+                              for:each={targetLookupOptions}
+                              for:item="option"
+                            >
+                              <li
+                                key={option.apiName}
+                                role="presentation"
+                                class="slds-listbox__item"
+                              >
                                 <div
                                   class="slds-media slds-listbox__option slds-listbox__option_entity slds-media_small"
                                   role="option"
@@ -128,7 +142,9 @@
                                   onclick={handleTargetLookupSelect}
                                   onmousedown={handleTargetLookupOptionMouseDown}
                                 >
-                                  <span class="slds-media__figure slds-listbox__option-icon">
+                                  <span
+                                    class="slds-media__figure slds-listbox__option-icon"
+                                  >
                                     <lightning-icon
                                       icon-name={option.iconName}
                                       alternative-text={option.label}
@@ -136,10 +152,14 @@
                                     ></lightning-icon>
                                   </span>
                                   <span class="slds-media__body">
-                                    <span class="slds-listbox__option-text slds-listbox__option-text_entity">
+                                    <span
+                                      class="slds-listbox__option-text slds-listbox__option-text_entity"
+                                    >
                                       {option.label}
                                     </span>
-                                    <span class="slds-listbox__option-meta slds-listbox__option-meta_entity">
+                                    <span
+                                      class="slds-listbox__option-meta slds-listbox__option-meta_entity"
+                                    >
                                       {option.apiName}
                                     </span>
                                   </span>
@@ -147,8 +167,13 @@
                               </li>
                             </template>
                             <template if:true={targetLookupSearchError}>
-                              <li class="slds-listbox__item" role="presentation">
-                                <div class="slds-media slds-listbox__option slds-media_center slds-has-error">
+                              <li
+                                class="slds-listbox__item"
+                                role="presentation"
+                              >
+                                <div
+                                  class="slds-media slds-listbox__option slds-media_center slds-has-error"
+                                >
                                   <span class="slds-media__body">
                                     <span class="slds-listbox__option-text">
                                       {targetLookupSearchError}
@@ -158,8 +183,13 @@
                               </li>
                             </template>
                             <template if:true={targetLookupShowInitialPrompt}>
-                              <li class="slds-listbox__item" role="presentation">
-                                <div class="slds-media slds-listbox__option slds-media_center">
+                              <li
+                                class="slds-listbox__item"
+                                role="presentation"
+                              >
+                                <div
+                                  class="slds-media slds-listbox__option slds-media_center"
+                                >
                                   <span class="slds-media__body">
                                     <span class="slds-listbox__option-text">
                                       Comença a escriure per cercar objectes.
@@ -169,10 +199,17 @@
                               </li>
                             </template>
                             <template if:true={targetLookupShowNoResults}>
-                              <li class="slds-listbox__item" role="presentation">
-                                <div class="slds-media slds-listbox__option slds-media_center">
+                              <li
+                                class="slds-listbox__item"
+                                role="presentation"
+                              >
+                                <div
+                                  class="slds-media slds-listbox__option slds-media_center"
+                                >
                                   <span class="slds-media__body">
-                                    <span class="slds-listbox__option-text">Sense coincidències.</span>
+                                    <span class="slds-listbox__option-text"
+                                      >Sense coincidències.</span
+                                    >
                                   </span>
                                 </div>
                               </li>
@@ -190,7 +227,10 @@
                       </div>
                     </div>
                   </div>
-                  <div class="slds-form-element__help" if:true={targetLookupErrorMessage}>
+                  <div
+                    class="slds-form-element__help"
+                    if:true={targetLookupErrorMessage}
+                  >
                     {targetLookupErrorMessage}
                   </div>
                 </div>
@@ -225,7 +265,8 @@
               <lightning-button
                 variant="brand"
                 label="Crear lot"
-                type="submit"
+                type="button"
+                onclick={handleCreateBatchClick}
               ></lightning-button>
             </div>
           </lightning-record-edit-form>
@@ -311,6 +352,24 @@
     </lightning-layout-item>
 
     <template if:true={selectedBatch}>
+      <lightning-layout-item size="12">
+        <lightning-card title="Pujar registres" icon-name="utility:upload">
+          <div class="slds-var-p-around_small">
+            <p class="slds-text-color_weak slds-var-m-bottom_small">
+              Puja un fitxer CSV relacionat amb el lot seleccionat. El component
+              <code>lightning-file-upload</code> permet fitxers de fins a 2 GB
+              per fitxer.
+            </p>
+            <lightning-file-upload
+              accept={acceptedFormats}
+              label="Selecciona CSV"
+              name="csvUploader"
+              record-id={selectedBatchId}
+              onuploadfinished={handleUploadFinished}
+            ></lightning-file-upload>
+          </div>
+        </lightning-card>
+      </lightning-layout-item>
       <lightning-layout-item size="12">
         <lightning-card
           title="Registres en memòria intermèdia"

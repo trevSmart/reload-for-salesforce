@@ -48,6 +48,9 @@ export default class ReloadWorkbench extends LightningElement {
 
   selectedBatchId;
   selectedStagingId;
+  formSubmitRequested = false;
+
+  acceptedFormats = [".csv"];
 
   batchColumns = [
     { label: "Batch", fieldName: "Name", type: "text" },
@@ -108,7 +111,9 @@ export default class ReloadWorkbench extends LightningElement {
 
   get targetLookupFormElementClass() {
     const baseClass = "slds-form-element slds-lookup";
-    return this.targetLookupErrorMessage ? `${baseClass} slds-has-error` : baseClass;
+    return this.targetLookupErrorMessage
+      ? `${baseClass} slds-has-error`
+      : baseClass;
   }
 
   get targetLookupComboboxClass() {
@@ -147,7 +152,10 @@ export default class ReloadWorkbench extends LightningElement {
   }
 
   get targetLookupListHasOptions() {
-    return Array.isArray(this.targetLookupOptions) && this.targetLookupOptions.length > 0;
+    return (
+      Array.isArray(this.targetLookupOptions) &&
+      this.targetLookupOptions.length > 0
+    );
   }
 
   get targetLookupShowInitialPrompt() {
@@ -287,8 +295,24 @@ export default class ReloadWorkbench extends LightningElement {
     }
   }
 
+  handleCreateBatchClick() {
+    this.formSubmitRequested = true;
+    const form = this.template.querySelector('[data-id="batch-form"]');
+    if (form) {
+      form.submit();
+    } else {
+      this.formSubmitRequested = false;
+    }
+  }
+
   handleBatchSubmit(event) {
-    event.preventDefault();
+    if (!this.formSubmitRequested) {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    // Handle target object lookup validation
     const fields = event.detail.fields;
     const targetFieldName = this.targetObjectField;
     fields[targetFieldName] = this.targetObjectApi;
@@ -296,16 +320,13 @@ export default class ReloadWorkbench extends LightningElement {
     if (!fields[targetFieldName]) {
       this.targetLookupErrorMessage = TARGET_LOOKUP_REQUIRED_MESSAGE;
       this.focusTargetLookupInput();
+      event.preventDefault();
       return;
     }
 
     this.targetLookupErrorMessage = undefined;
-    const form = this.template.querySelector('[data-id="batch-form"]');
-    if (form) {
-      form.submit(fields);
-    }
+    this.formSubmitRequested = false;
   }
-
   resetSelections() {
     this.selectedBatchId = undefined;
     this.selectedStagingId = undefined;
@@ -408,13 +429,13 @@ export default class ReloadWorkbench extends LightningElement {
     if (!value) {
       return;
     }
-    const option =
-      this.targetLookupOptions.find((item) => item.apiName === value) ||
-      {
-        apiName: value,
-        label: event.currentTarget.dataset.label || value,
-        iconName: "standard:default"
-      };
+    const option = this.targetLookupOptions.find(
+      (item) => item.apiName === value
+    ) || {
+      apiName: value,
+      label: event.currentTarget.dataset.label || value,
+      iconName: "standard:default"
+    };
     this.targetObjectSelection = option;
     this.targetObjectApi = option.apiName;
     this.targetLookupSearchTerm = "";
@@ -481,7 +502,9 @@ export default class ReloadWorkbench extends LightningElement {
 
   focusTargetLookupInput() {
     Promise.resolve().then(() => {
-      const input = this.template.querySelector('[data-id="target-lookup-input"]');
+      const input = this.template.querySelector(
+        '[data-id="target-lookup-input"]'
+      );
       if (input) {
         input.focus();
       }
@@ -498,6 +521,26 @@ export default class ReloadWorkbench extends LightningElement {
     this.targetLookupLoading = false;
     this.targetLookupFocused = false;
     this.latestTargetLookupRequest = 0;
+  }
+
+  handleUploadFinished(event) {
+    const uploadedFiles = event.detail?.files ?? [];
+    const fileNames = uploadedFiles.map((file) => file.name).join(", ");
+    const defaultMessage =
+      uploadedFiles.length > 1
+        ? `S'han pujat ${uploadedFiles.length} fitxers.`
+        : "S'ha pujat el fitxer correctament.";
+    const message = fileNames
+      ? `${defaultMessage} (${fileNames})`
+      : defaultMessage;
+
+    this.dispatchEvent(
+      new ShowToastEvent({
+        title: "Fitxer carregat",
+        message,
+        variant: "success"
+      })
+    );
   }
 
   handleTouchBatch() {

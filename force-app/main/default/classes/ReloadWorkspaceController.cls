@@ -10,7 +10,11 @@ public with sharing class ReloadWorkspaceController {
     @AuraEnabled
     public String iconName;
 
-    public TargetObjectOption(String apiNameValue, String labelValue, String iconNameValue) {
+    public TargetObjectOption(
+      String apiNameValue,
+      String labelValue,
+      String iconNameValue
+    ) {
       apiName = apiNameValue;
       label = labelValue;
       iconName = iconNameValue;
@@ -19,10 +23,10 @@ public with sharing class ReloadWorkspaceController {
     public Integer compareTo(Object other) {
       TargetObjectOption otherOption = (TargetObjectOption) other;
       String thisLabel = label != null ? label.toLowerCase() : '';
-      String otherLabel =
-        otherOption != null && otherOption.label != null
-          ? otherOption.label.toLowerCase()
-          : '';
+      String otherLabel = otherOption != null &&
+        otherOption.label != null
+        ? otherOption.label.toLowerCase()
+        : '';
       return thisLabel.compareTo(otherLabel);
     }
   }
@@ -130,11 +134,13 @@ public with sharing class ReloadWorkspaceController {
     String searchTerm,
     Integer limitSize
   ) {
-    Integer queryLimit =
-      limitSize == null || limitSize <= 0
-        ? 10
-        : Integer.valueOf(Math.min(limitSize, MAX_LOOKUP_RESULTS));
-    String normalizedSearch = searchTerm == null ? '' : searchTerm.trim().toLowerCase();
+    Integer queryLimit = limitSize == null ||
+      limitSize <= 0
+      ? 10
+      : Integer.valueOf(Math.min(limitSize, MAX_LOOKUP_RESULTS));
+    String normalizedSearch = searchTerm == null
+      ? ''
+      : searchTerm.trim().toLowerCase();
 
     Map<String, Schema.SObjectType> globalDescribe = Schema.getGlobalDescribe();
     List<TargetObjectOption> matches = new List<TargetObjectOption>();
@@ -160,7 +166,9 @@ public with sharing class ReloadWorkspaceController {
         lowerLabel.contains(normalizedSearch) ||
         lowerApi.contains(normalizedSearch)
       ) {
-        String iconName = describeResult.isCustom() ? 'custom:custom63' : 'standard:default';
+        String iconName = describeResult.isCustom()
+          ? 'custom:custom63'
+          : 'standard:default';
         matches.add(new TargetObjectOption(apiName, label, iconName));
       }
     }
