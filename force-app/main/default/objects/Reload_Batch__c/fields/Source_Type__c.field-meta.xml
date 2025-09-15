@@ -1,32 +1,34 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Source_Type__c</fullName>
     <description>Type of inbound source that populated the batch.</description>
     <externalId>false</externalId>
     <label>Source Type</label>
-    <picklist>
-        <picklistValues>
-            <fullName>CSV</fullName>
-            <default>true</default>
-        </picklistValues>
-        <picklistValues>
-            <fullName>Excel</fullName>
-            <default>false</default>
-        </picklistValues>
-        <picklistValues>
-            <fullName>JSON</fullName>
-            <default>false</default>
-        </picklistValues>
-        <picklistValues>
-            <fullName>External API</fullName>
-            <default>false</default>
-        </picklistValues>
-        <picklistValues>
-            <fullName>Manual Entry</fullName>
-            <default>false</default>
-        </picklistValues>
-        <sorted>true</sorted>
-    </picklist>
+    <valueSet>
+        <valueSetDefinition>
+            <value>
+                <fullName>CSV</fullName>
+                <default>true</default>
+            </value>
+            <value>
+                <fullName>Excel</fullName>
+                <default>false</default>
+            </value>
+            <value>
+                <fullName>JSON</fullName>
+                <default>false</default>
+            </value>
+            <value>
+                <fullName>External API</fullName>
+                <default>false</default>
+            </value>
+            <value>
+                <fullName>Manual Entry</fullName>
+                <default>false</default>
+            </value>
+            <sorted>true</sorted>
+        </valueSetDefinition>
+    </valueSet>
     <trackFeedHistory>true</trackFeedHistory>
     <trackHistory>true</trackHistory>
     <type>Picklist</type>

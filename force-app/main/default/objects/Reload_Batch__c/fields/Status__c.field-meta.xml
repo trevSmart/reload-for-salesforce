@@ -1,36 +1,38 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Status__c</fullName>
     <description>High-level state of the batch lifecycle.</description>
     <externalId>false</externalId>
     <label>Status</label>
-    <picklist>
-        <picklistValues>
-            <fullName>Draft</fullName>
-            <default>true</default>
-        </picklistValues>
-        <picklistValues>
-            <fullName>Ready</fullName>
-            <default>false</default>
-        </picklistValues>
-        <picklistValues>
-            <fullName>Processing</fullName>
-            <default>false</default>
-        </picklistValues>
-        <picklistValues>
-            <fullName>Completed</fullName>
-            <default>false</default>
-        </picklistValues>
-        <picklistValues>
-            <fullName>Failed</fullName>
-            <default>false</default>
-        </picklistValues>
-        <picklistValues>
-            <fullName>Archived</fullName>
-            <default>false</default>
-        </picklistValues>
-        <sorted>true</sorted>
-    </picklist>
+    <valueSet>
+        <valueSetDefinition>
+            <value>
+                <fullName>Draft</fullName>
+                <default>true</default>
+            </value>
+            <value>
+                <fullName>Ready</fullName>
+                <default>false</default>
+            </value>
+            <value>
+                <fullName>Processing</fullName>
+                <default>false</default>
+            </value>
+            <value>
+                <fullName>Completed</fullName>
+                <default>false</default>
+            </value>
+            <value>
+                <fullName>Failed</fullName>
+                <default>false</default>
+            </value>
+            <value>
+                <fullName>Archived</fullName>
+                <default>false</default>
+            </value>
+            <sorted>true</sorted>
+        </valueSetDefinition>
+    </valueSet>
     <trackFeedHistory>true</trackFeedHistory>
     <trackHistory>true</trackHistory>
     <type>Picklist</type>

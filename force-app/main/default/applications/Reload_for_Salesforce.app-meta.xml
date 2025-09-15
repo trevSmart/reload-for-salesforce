@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
-    <description>Lightning application that centralizes the Reload for Salesforce data loading framework.</description>
+    <description
+  >Lightning application that centralizes the Reload for Salesforce data loading framework.</description>
     <label>Reload for Salesforce</label>
     <defaultLandingTab>Reload_Manager</defaultLandingTab>
     <logo>AppIcon:Lightning</logo>
@@ -9,7 +10,7 @@
     <tabs>Reload_Batch__c</tabs>
     <tabs>Reload_Staging__c</tabs>
     <tabs>Reload_Field_Value__c</tabs>
-    <tabs>standard-Reports</tabs>
-    <tabs>standard-Dashboard</tabs>
     <uiType>Lightning</uiType>
+    <formFactors>Small</formFactors>
+    <formFactors>Large</formFactors>
 </CustomApplication>

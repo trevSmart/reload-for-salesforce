@@ -1,0 +1,8 @@
+---
+description: Instructions to deploy metadata to an org
+globs:
+alwaysApply: true
+---
+Use the command `sf project deploy start`. Examples:
+- `sf project deploy start --source-file force-app/main/default/classes/myClass.cls --verbose --json`
+- `sf project deploy start --source-fir force-app/main/default/lwc/myComponent/ --verbose --json`

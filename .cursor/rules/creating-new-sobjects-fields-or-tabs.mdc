@@ -1,0 +1,11 @@
+---
+description: Creating new sobjects, fields or tabs
+globs:
+alwaysApply: true
+---
+Use the 'sf schema generate` 'Salesforce CLI command. Examples:
+`sf schema generate field --label "My Field"`
+`sf schema generate sobject --label "My Object"`
+`sf schema generate tab --object "MyObject__c" --icon 54 --directory force-app/main/default/tabs`
+
+[Commanf reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_schema_commands_unified.htm)

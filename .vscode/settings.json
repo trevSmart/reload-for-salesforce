@@ -3,5 +3,57 @@
     "**/node_modules": true,
     "**/bower_components": true,
     "**/.sfdx": true
-  }
+  },
+  "actionButtons": {
+		"commands": [
+			{
+				"name": "$(terminal)",
+				"useVsCodeApi": true,
+				"command": "workbench.action.terminal.toggleTerminal",
+				"color": "#e3e3e3"
+			},
+			{
+				"name": ".",
+				"useVsCodeApi": true,
+				"command": "",
+				"color": "#00000000" // slightly darker and more blueish green
+			},
+			{
+				"name": "$(cloud-download) Retrieve",
+				"color": "#22a6b3" // slightly darker and more blueish green
+			},
+			{
+				"name": "$(compare-changes) Diff",
+				"useVsCodeApi": true,
+				"command": "sf.diff",
+				"color": "#ac76d5" // darker dark pink
+			},
+			{
+				"name": "$(lightbulb-autofix) Lint",
+				"useVsCodeApi": true,
+				"command": "workbench.action.tasks.runTask",
+				"args": [
+					"Lint"
+				],
+				"color": "#6D81fA"
+			},
+			{
+				"name": "$(link) Links",
+				"useVsCodeApi": true,
+				"command": "workbench.action.tasks.build",
+				"color": "#94adff"
+			}
+		],
+		"defaultColor": "currentColor",
+		"reloadButton": null,
+		"loadNpmCommands": false
+	},
+	"squarl.bookmarks": [
+		{
+			"name": "Salesforce CLI reference",
+			"path": "https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/cli_reference_unified.htm",
+			"description": "Salesforce Developer Website",
+			"type": "link"
+		}
+	]
 }

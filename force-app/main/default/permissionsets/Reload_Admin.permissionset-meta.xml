@@ -1,6 +1,7 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
-    <description>Grants access to the Reload for Salesforce data load framework.</description>
+    <description
+  >Grants access to the Reload for Salesforce data load framework.</description>
     <hasActivationRequired>false</hasActivationRequired>
     <label>Reload Admin</label>
     <applicationVisibilities>
@@ -101,17 +102,7 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Reload_Batch__c.Target_Object_API__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
         <field>Reload_Batch__c.Total_Records__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Reload_Staging__c.Batch__c</field>
         <readable>true</readable>
     </fieldPermissions>
     <fieldPermissions>
@@ -176,11 +167,6 @@
     </fieldPermissions>
     <fieldPermissions>
         <editable>true</editable>
-        <field>Reload_Field_Value__c.Field_API_Name__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
         <field>Reload_Field_Value__c.Field_Label__c</field>
         <readable>true</readable>
     </fieldPermissions>
@@ -202,11 +188,6 @@
     <fieldPermissions>
         <editable>true</editable>
         <field>Reload_Field_Value__c.Sequence__c</field>
-        <readable>true</readable>
-    </fieldPermissions>
-    <fieldPermissions>
-        <editable>true</editable>
-        <field>Reload_Field_Value__c.Staging_Record__c</field>
         <readable>true</readable>
     </fieldPermissions>
 </PermissionSet>

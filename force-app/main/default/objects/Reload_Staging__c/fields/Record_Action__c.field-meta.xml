@@ -1,28 +1,31 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Record_Action__c</fullName>
-    <description>CRUD operation to apply to the target object for this staged row.</description>
+    <description
+  >CRUD operation to apply to the target object for this staged row.</description>
     <externalId>false</externalId>
     <label>Record Action</label>
-    <picklist>
-        <picklistValues>
-            <fullName>Insert</fullName>
-            <default>true</default>
-        </picklistValues>
-        <picklistValues>
-            <fullName>Update</fullName>
-            <default>false</default>
-        </picklistValues>
-        <picklistValues>
-            <fullName>Upsert</fullName>
-            <default>false</default>
-        </picklistValues>
-        <picklistValues>
-            <fullName>Delete</fullName>
-            <default>false</default>
-        </picklistValues>
-        <sorted>true</sorted>
-    </picklist>
+    <valueSet>
+        <valueSetDefinition>
+            <value>
+                <fullName>Insert</fullName>
+                <default>true</default>
+            </value>
+            <value>
+                <fullName>Update</fullName>
+                <default>false</default>
+            </value>
+            <value>
+                <fullName>Upsert</fullName>
+                <default>false</default>
+            </value>
+            <value>
+                <fullName>Delete</fullName>
+                <default>false</default>
+            </value>
+            <sorted>true</sorted>
+        </valueSetDefinition>
+    </valueSet>
     <trackFeedHistory>true</trackFeedHistory>
     <trackHistory>true</trackHistory>
     <type>Picklist</type>
