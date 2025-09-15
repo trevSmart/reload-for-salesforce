@@ -36,6 +36,7 @@
           <lightning-record-edit-form
             object-api-name="Reload_Batch__c"
             onsuccess={handleBatchCreated}
+            onsubmit={handleBatchSubmit}
           >
             <lightning-messages></lightning-messages>
             <div class="slds-grid slds-wrap slds-gutters">
@@ -74,7 +75,8 @@
               <lightning-button
                 variant="brand"
                 label="Crear lot"
-                type="submit"
+                type="button"
+                onclick={handleCreateBatchClick}
               ></lightning-button>
             </div>
           </lightning-record-edit-form>
