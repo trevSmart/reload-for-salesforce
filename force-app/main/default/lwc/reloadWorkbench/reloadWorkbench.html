@@ -1,0 +1,180 @@
+<template>
+    <lightning-layout multiple-rows class="slds-p-around_medium">
+        <lightning-layout-item size="12">
+            <lightning-card title="Reload for Salesforce" icon-name="custom:custom85">
+                <div class="slds-var-p-horizontal_small slds-var-p-bottom_small">
+                    <p class="slds-var-m-bottom_small">
+                        Gestiona un marc flexible de càrrega de dades amb una única taula intermèdia i eines per
+                        preparar, revisar i impulsar registres cap als objectes de destinació de Salesforce.
+                    </p>
+                    <ul class="slds-list_dotted">
+                        <li>Centralitza lots de càrrega per origen (CSV, Excel, JSON o APIs externes).</li>
+                        <li>Mapa camps de manera dinàmica sense haver de manipular JSON.</li>
+                        <li>Controla l'estat de cada registre i consulta ràpidament els errors.</li>
+                    </ul>
+                </div>
+            </lightning-card>
+        </lightning-layout-item>
+
+        <lightning-layout-item size="12">
+            <lightning-card title="Nou lot de càrrega" icon-name="utility:add">
+                <div class="slds-var-p-around_small">
+                    <p class="slds-text-color_weak slds-var-m-bottom_small">
+                        Defineix el lot i després incorpora registres a la taula intermèdia amb l'origen que et sigui
+                        més còmode. El lot conservarà tota la configuració i l'estat d'execució.
+                    </p>
+                    <lightning-record-edit-form object-api-name="Reload_Batch__c" onsuccess={handleBatchCreated}>
+                        <lightning-messages></lightning-messages>
+                        <div class="slds-grid slds-wrap slds-gutters">
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                                <lightning-input-field field-name={targetObjectField}></lightning-input-field>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                                <lightning-input-field field-name={defaultOperationField}></lightning-input-field>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                                <lightning-input-field field-name={sourceTypeField}></lightning-input-field>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                                <lightning-input-field field-name={sourceLocationField}></lightning-input-field>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                                <lightning-input-field field-name={externalSystemField}></lightning-input-field>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1">
+                                <lightning-input-field field-name={notesField}></lightning-input-field>
+                            </div>
+                        </div>
+                        <div class="slds-var-m-top_medium">
+                            <lightning-button variant="brand" label="Crear lot" type="submit"></lightning-button>
+                        </div>
+                    </lightning-record-edit-form>
+                </div>
+            </lightning-card>
+        </lightning-layout-item>
+
+        <lightning-layout-item size="12">
+            <lightning-card title="Lots recents" icon-name="utility:table">
+                <div class="slds-var-p-around_small">
+                    <div class="slds-grid slds-wrap slds-gutters slds-var-m-bottom_small">
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_auto">
+                            <p class="slds-text-color_weak">Selecciona un lot per veure'n els registres i analitzar-ne el progrés.</p>
+                        </div>
+                        <div class="slds-col slds-size_1-of-1 slds-medium-size_auto slds-text-align_right">
+                            <lightning-button label="Actualitzar" onclick={handleRefreshBatches}></lightning-button>
+                        </div>
+                    </div>
+                    <template if:true={batchesErrorMessage}>
+                        <div class="slds-text-color_error">{batchesErrorMessage}</div>
+                    </template>
+                    <lightning-datatable
+                        key-field="Id"
+                        data={batches}
+                        columns={batchColumns}
+                        selected-rows={selectedBatchIdArray}
+                        onrowselection={handleBatchSelection}
+                        max-row-selection="1"
+                        show-row-number-column
+                    ></lightning-datatable>
+                    <template if:true={selectedBatch}>
+                        <div class="slds-var-m-top_medium slds-grid slds-wrap slds-gutters">
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                                <p class="slds-text-title_caps slds-var-m-bottom_x-small">Resum del lot</p>
+                                <div class="slds-text-body_regular">
+                                    <strong>Objecte:</strong> {selectedBatch.Target_Object_API__c}<br />
+                                    <strong>Operació:</strong> {selectedBatch.Default_Operation__c}<br />
+                                    <strong>Estat:</strong> {selectedBatch.Status__c}<br />
+                                    <strong>Origen:</strong> {selectedBatch.Source_Type__c}
+                                </div>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2 slds-text-align_right">
+                                <lightning-badge label={selectedBatch.Total_Records__c}></lightning-badge>
+                                <span class="slds-var-m-right_x-small">Registres totals</span><br />
+                                <lightning-badge label={selectedBatch.Processed_Records__c}></lightning-badge>
+                                <span class="slds-var-m-right_x-small">Processats</span><br />
+                                <lightning-badge label={selectedBatch.Error_Count__c} class="slds-theme_error"></lightning-badge>
+                                <span class="slds-var-m-right_x-small">Errors</span><br />
+                                <div class="slds-var-m-top_small">
+                                    <lightning-button-icon
+                                        icon-name="utility:clock"
+                                        alternative-text="Marcar com executat"
+                                        onclick={handleTouchBatch}
+                                    ></lightning-button-icon>
+                                </div>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </lightning-card>
+        </lightning-layout-item>
+
+        <template if:true={selectedBatch}>
+            <lightning-layout-item size="12">
+                <lightning-card title="Registres en memòria intermèdia" icon-name="utility:stage">
+                    <div class="slds-var-p-around_small">
+                        <template if:true={stagingErrorMessage}>
+                            <div class="slds-text-color_error">{stagingErrorMessage}</div>
+                        </template>
+                        <div class="slds-is-relative">
+                            <template if:true={stagingLoading}>
+                                <lightning-spinner alternative-text="Carregant registres"></lightning-spinner>
+                            </template>
+                            <lightning-datatable
+                                key-field="Id"
+                                data={stagingRecords}
+                                columns={stagingColumns}
+                                selected-rows={selectedStagingIdArray}
+                                onrowselection={handleStagingSelection}
+                                        max-row-selection="1"
+                                show-row-number-column
+                            ></lightning-datatable>
+                        </div>
+                    </div>
+                </lightning-card>
+            </lightning-layout-item>
+        </template>
+
+        <template if:true={selectedStaging}>
+            <lightning-layout-item size="12">
+                <lightning-card title="Detall del registre" icon-name="utility:description">
+                    <div class="slds-var-p-around_small">
+                        <div class="slds-grid slds-wrap slds-gutters">
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2">
+                                <p class="slds-text-title_caps slds-var-m-bottom_x-small">Payload</p>
+                                <pre class="slds-box slds-theme_default payload">{selectedStagingPayload}</pre>
+                            </div>
+                            <div class="slds-col slds-size_1-of-1 slds-large-size_1-of-2">
+                                <p class="slds-text-title_caps slds-var-m-bottom_x-small">Error</p>
+                                <pre class="slds-box slds-theme_error payload">{selectedStagingError}</pre>
+                            </div>
+                        </div>
+                    </div>
+                </lightning-card>
+            </lightning-layout-item>
+            <lightning-layout-item size="12">
+                <lightning-card title="Valors de camp" icon-name="utility:choice">
+                    <div class="slds-var-p-around_small slds-is-relative">
+                        <template if:true={fieldValueErrorMessage}>
+                            <div class="slds-text-color_error">{fieldValueErrorMessage}</div>
+                        </template>
+                        <template if:true={fieldValuesLoading}>
+                            <lightning-spinner alternative-text="Carregant valors"></lightning-spinner>
+                        </template>
+                        <template if:true={hasFieldValues}>
+                            <lightning-datatable
+                                key-field="Id"
+                                data={fieldValues}
+                                columns={fieldColumns}
+                                hide-checkbox-column
+                                show-row-number-column
+                            ></lightning-datatable>
+                        </template>
+                        <template if:false={hasFieldValues}>
+                            <p class="slds-text-color_weak">Encara no hi ha valors detallats per aquest registre.</p>
+                        </template>
+                    </div>
+                </lightning-card>
+            </lightning-layout-item>
+        </template>
+    </lightning-layout>
+</template>

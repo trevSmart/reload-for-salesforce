@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Default_Operation__c</fullName>
+    <description>Default CRUD operation to apply when pushing staged records into the target object.</description>
+    <externalId>false</externalId>
+    <label>Default Operation</label>
+    <picklist>
+        <picklistValues>
+            <fullName>Insert</fullName>
+            <default>true</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Update</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Upsert</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Delete</fullName>
+            <default>false</default>
+        </picklistValues>
+        <sorted>true</sorted>
+    </picklist>
+    <trackFeedHistory>true</trackFeedHistory>
+    <trackHistory>true</trackHistory>
+    <type>Picklist</type>
+</CustomField>

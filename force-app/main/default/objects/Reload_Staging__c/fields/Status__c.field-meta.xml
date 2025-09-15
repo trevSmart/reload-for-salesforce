@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Status__c</fullName>
+    <description>Processing status for the staged record.</description>
+    <externalId>false</externalId>
+    <label>Status</label>
+    <picklist>
+        <picklistValues>
+            <fullName>Pending</fullName>
+            <default>true</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Ready</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Processing</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Success</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Error</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Skipped</fullName>
+            <default>false</default>
+        </picklistValues>
+        <sorted>true</sorted>
+    </picklist>
+    <trackFeedHistory>true</trackFeedHistory>
+    <trackHistory>true</trackHistory>
+    <type>Picklist</type>
+</CustomField>
