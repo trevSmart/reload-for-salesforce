@@ -5,6 +5,7 @@ import { refreshApex } from "@salesforce/apex";
 import fetchBatches from "@salesforce/apex/ReloadWorkspaceController.fetchBatches";
 import fetchStagingRecords from "@salesforce/apex/ReloadWorkspaceController.fetchStagingRecords";
 import fetchFieldValues from "@salesforce/apex/ReloadWorkspaceController.fetchFieldValues";
+import searchTargetObjects from "@salesforce/apex/ReloadWorkspaceController.searchTargetObjects";
 import touchBatch from "@salesforce/apex/ReloadWorkspaceController.touchBatch";
 
 import TARGET_OBJECT_FIELD from "@salesforce/schema/Reload_Batch__c.Target_Object_API__c";
@@ -15,6 +16,11 @@ import EXTERNAL_SYSTEM_FIELD from "@salesforce/schema/Reload_Batch__c.External_S
 import NOTES_FIELD from "@salesforce/schema/Reload_Batch__c.Notes__c";
 
 const DEFAULT_BATCH_LIMIT = 50;
+const TARGET_LOOKUP_SEARCH_LIMIT = 20;
+const TARGET_OBJECT_LABEL = "Target Object API Name";
+const TARGET_LOOKUP_PLACEHOLDER = "Cerca un objecte de Salesforce";
+const TARGET_LOOKUP_REQUIRED_MESSAGE = "Selecciona un objecte de destinació.";
+const TARGET_LOOKUP_SPINNER_TEXT = "Carregant objectes";
 
 export default class ReloadWorkbench extends LightningElement {
   @track batches;
@@ -28,6 +34,17 @@ export default class ReloadWorkbench extends LightningElement {
   @track fieldValues;
   fieldValueError;
   fieldValuesLoading = false;
+
+  @track targetLookupOptions = [];
+  @track targetObjectSelection;
+
+  targetObjectApi;
+  targetLookupSearchTerm = "";
+  targetLookupFocused = false;
+  targetLookupLoading = false;
+  targetLookupErrorMessage;
+  targetLookupSearchError;
+  latestTargetLookupRequest = 0;
 
   selectedBatchId;
   selectedStagingId;
@@ -75,6 +92,86 @@ export default class ReloadWorkbench extends LightningElement {
 
   get targetObjectField() {
     return TARGET_OBJECT_FIELD.fieldApiName;
+  }
+
+  get targetObjectFieldLabel() {
+    return TARGET_OBJECT_LABEL;
+  }
+
+  get targetLookupPlaceholder() {
+    return TARGET_LOOKUP_PLACEHOLDER;
+  }
+
+  get targetLookupSpinnerText() {
+    return TARGET_LOOKUP_SPINNER_TEXT;
+  }
+
+  get targetLookupFormElementClass() {
+    const baseClass = "slds-form-element slds-lookup";
+    return this.targetLookupErrorMessage ? `${baseClass} slds-has-error` : baseClass;
+  }
+
+  get targetLookupComboboxClass() {
+    const classes = [
+      "slds-combobox",
+      "slds-dropdown-trigger",
+      "slds-dropdown-trigger_click",
+      "slds-combobox-lookup"
+    ];
+    if (this.targetLookupDropdownVisible) {
+      classes.push("slds-is-open");
+    }
+    if (this.targetLookupFocused) {
+      classes.push("slds-has-input-focus");
+    }
+    if (this.hasTargetObjectSelection) {
+      classes.push("slds-has-selection");
+    }
+    return classes.join(" ");
+  }
+
+  get targetLookupDropdownAriaExpanded() {
+    return this.targetLookupDropdownVisible ? "true" : "false";
+  }
+
+  get hasTargetObjectSelection() {
+    return !!(
+      this.targetObjectSelection &&
+      typeof this.targetObjectSelection.apiName === "string" &&
+      this.targetObjectSelection.apiName.length > 0
+    );
+  }
+
+  get targetLookupDropdownVisible() {
+    return this.targetLookupFocused && !this.hasTargetObjectSelection;
+  }
+
+  get targetLookupListHasOptions() {
+    return Array.isArray(this.targetLookupOptions) && this.targetLookupOptions.length > 0;
+  }
+
+  get targetLookupShowInitialPrompt() {
+    return (
+      this.targetLookupDropdownVisible &&
+      !this.targetLookupLoading &&
+      !this.targetLookupSearchError &&
+      !this.targetLookupListHasOptions &&
+      !this.targetLookupSearchTerm
+    );
+  }
+
+  get targetLookupShowNoResults() {
+    return (
+      this.targetLookupDropdownVisible &&
+      !this.targetLookupLoading &&
+      !this.targetLookupSearchError &&
+      !this.targetLookupListHasOptions &&
+      !!this.targetLookupSearchTerm
+    );
+  }
+
+  get targetLookupAriaInvalid() {
+    return this.targetLookupErrorMessage ? "true" : "false";
   }
 
   get defaultOperationField() {
@@ -176,6 +273,7 @@ export default class ReloadWorkbench extends LightningElement {
   }
 
   handleBatchCreated() {
+    this.resetTargetLookup();
     this.dispatchEvent(
       new ShowToastEvent({
         title: "Batch created",
@@ -186,6 +284,25 @@ export default class ReloadWorkbench extends LightningElement {
     this.resetSelections();
     if (this.wiredBatchesResult) {
       refreshApex(this.wiredBatchesResult);
+    }
+  }
+
+  handleBatchSubmit(event) {
+    event.preventDefault();
+    const fields = event.detail.fields;
+    const targetFieldName = this.targetObjectField;
+    fields[targetFieldName] = this.targetObjectApi;
+
+    if (!fields[targetFieldName]) {
+      this.targetLookupErrorMessage = TARGET_LOOKUP_REQUIRED_MESSAGE;
+      this.focusTargetLookupInput();
+      return;
+    }
+
+    this.targetLookupErrorMessage = undefined;
+    const form = this.template.querySelector('[data-id="batch-form"]');
+    if (form) {
+      form.submit(fields);
     }
   }
 
@@ -257,6 +374,130 @@ export default class ReloadWorkbench extends LightningElement {
       .finally(() => {
         this.fieldValuesLoading = false;
       });
+  }
+
+  handleTargetLookupFocus() {
+    this.targetLookupFocused = true;
+    this.targetLookupErrorMessage = undefined;
+    if (
+      !this.hasTargetObjectSelection &&
+      (!this.targetLookupListHasOptions || this.targetLookupSearchError)
+    ) {
+      this.performTargetLookupSearch(this.targetLookupSearchTerm);
+    }
+  }
+
+  handleTargetLookupInput(event) {
+    this.targetLookupFocused = true;
+    this.targetLookupSearchTerm = event.target.value;
+    this.targetLookupErrorMessage = undefined;
+    this.performTargetLookupSearch(this.targetLookupSearchTerm);
+  }
+
+  handleTargetLookupBlur() {
+    this.targetLookupFocused = false;
+  }
+
+  handleTargetLookupOptionMouseDown(event) {
+    event.preventDefault();
+  }
+
+  handleTargetLookupSelect(event) {
+    event.preventDefault();
+    const value = event.currentTarget.dataset.value;
+    if (!value) {
+      return;
+    }
+    const option =
+      this.targetLookupOptions.find((item) => item.apiName === value) ||
+      {
+        apiName: value,
+        label: event.currentTarget.dataset.label || value,
+        iconName: "standard:default"
+      };
+    this.targetObjectSelection = option;
+    this.targetObjectApi = option.apiName;
+    this.targetLookupSearchTerm = "";
+    this.targetLookupOptions = [];
+    this.targetLookupErrorMessage = undefined;
+    this.targetLookupSearchError = undefined;
+    this.targetLookupLoading = false;
+    this.targetLookupFocused = false;
+    this.latestTargetLookupRequest += 1;
+  }
+
+  handleTargetLookupRemove() {
+    this.targetObjectSelection = undefined;
+    this.targetObjectApi = undefined;
+    this.targetLookupErrorMessage = undefined;
+    this.targetLookupSearchError = undefined;
+    this.targetLookupSearchTerm = "";
+    this.targetLookupOptions = [];
+    this.targetLookupFocused = true;
+    this.latestTargetLookupRequest += 1;
+    this.focusTargetLookupInput();
+    this.performTargetLookupSearch(this.targetLookupSearchTerm);
+  }
+
+  performTargetLookupSearch(rawSearchTerm) {
+    if (this.hasTargetObjectSelection) {
+      return;
+    }
+    const searchTerm = rawSearchTerm ? rawSearchTerm.trim() : "";
+    const requestToken = ++this.latestTargetLookupRequest;
+    this.targetLookupLoading = true;
+    this.targetLookupSearchError = undefined;
+    searchTargetObjects({
+      searchTerm,
+      limitSize: TARGET_LOOKUP_SEARCH_LIMIT
+    })
+      .then((results) => {
+        if (requestToken !== this.latestTargetLookupRequest) {
+          return;
+        }
+        if (Array.isArray(results)) {
+          this.targetLookupOptions = results.map((item) => ({
+            apiName: item.apiName,
+            label: item.label || item.apiName,
+            iconName: item.iconName || "standard:default"
+          }));
+        } else {
+          this.targetLookupOptions = [];
+        }
+      })
+      .catch((error) => {
+        if (requestToken !== this.latestTargetLookupRequest) {
+          return;
+        }
+        this.targetLookupOptions = [];
+        this.targetLookupSearchError = this.reduceError(error);
+      })
+      .finally(() => {
+        if (requestToken === this.latestTargetLookupRequest) {
+          this.targetLookupLoading = false;
+        }
+      });
+  }
+
+  focusTargetLookupInput() {
+    Promise.resolve().then(() => {
+      const input = this.template.querySelector('[data-id="target-lookup-input"]');
+      if (input) {
+        input.focus();
+      }
+    });
+  }
+
+  resetTargetLookup() {
+    this.targetObjectSelection = undefined;
+    this.targetObjectApi = undefined;
+    this.targetLookupSearchTerm = "";
+    this.targetLookupOptions = [];
+    this.targetLookupErrorMessage = undefined;
+    this.targetLookupSearchError = undefined;
+    this.targetLookupLoading = false;
+    this.targetLookupFocused = false;
+    this.latestTargetLookupRequest = 0;
   }
 
   handleTouchBatch() {

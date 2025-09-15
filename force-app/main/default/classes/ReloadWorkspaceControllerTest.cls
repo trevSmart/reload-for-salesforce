@@ -86,4 +86,35 @@ private class ReloadWorkspaceControllerTest {
       'Touching without an Id should throw an AuraHandledException'
     );
   }
+
+  @IsTest
+  static void testSearchTargetObjects() {
+    Test.startTest();
+    List<ReloadWorkspaceController.TargetObjectOption> accountResults =
+      ReloadWorkspaceController.searchTargetObjects('Acc', 10);
+    List<ReloadWorkspaceController.TargetObjectOption> limitedResults =
+      ReloadWorkspaceController.searchTargetObjects(null, 1);
+    Test.stopTest();
+
+    System.assert(
+      accountResults.size() > 0,
+      'Search should return available objects'
+    );
+
+    Boolean foundAccount = false;
+    for (ReloadWorkspaceController.TargetObjectOption option : accountResults) {
+      if (option.apiName == 'Account') {
+        foundAccount = true;
+        System.assertNotEquals(null, option.label, 'Label should be provided');
+        System.assertNotEquals(null, option.iconName, 'Icon should be provided');
+      }
+    }
+    System.assert(foundAccount, 'Account should appear in the search results');
+
+    System.assertEquals(
+      1,
+      limitedResults.size(),
+      'Limit parameter should restrict the number of results'
+    );
+  }
 }
