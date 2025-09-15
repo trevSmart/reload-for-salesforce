@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Origin_Type__c</fullName>
+    <description>Specific mechanism that inserted this staged row.</description>
+    <externalId>false</externalId>
+    <label>Origin Type</label>
+    <picklist>
+        <picklistValues>
+            <fullName>File Upload</fullName>
+            <default>true</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>External API</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Manual Entry</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Scheduled Fetch</fullName>
+            <default>false</default>
+        </picklistValues>
+        <sorted>true</sorted>
+    </picklist>
+    <trackFeedHistory>true</trackFeedHistory>
+    <trackHistory>true</trackHistory>
+    <type>Picklist</type>
+</CustomField>

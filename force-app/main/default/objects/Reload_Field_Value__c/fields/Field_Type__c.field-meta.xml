@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Field_Type__c</fullName>
+    <description>Type of the target field for validation and rendering.</description>
+    <externalId>false</externalId>
+    <label>Field Type</label>
+    <picklist>
+        <picklistValues>
+            <fullName>Text</fullName>
+            <default>true</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Number</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Date</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>DateTime</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Checkbox</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Picklist</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Lookup</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Currency</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Percent</fullName>
+            <default>false</default>
+        </picklistValues>
+        <picklistValues>
+            <fullName>Reference</fullName>
+            <default>false</default>
+        </picklistValues>
+        <sorted>true</sorted>
+    </picklist>
+    <trackFeedHistory>true</trackFeedHistory>
+    <trackHistory>true</trackHistory>
+    <type>Picklist</type>
+</CustomField>

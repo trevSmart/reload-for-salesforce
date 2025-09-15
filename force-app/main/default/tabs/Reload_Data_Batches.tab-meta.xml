@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomTab xmlns="http://soap.sforce.com/2006/04/metadata">
+    <customObject>true</customObject>
+    <description>Access to Reload Data Batch records.</description>
+    <label>Reload Data Batches</label>
+    <motif>Custom35: Briefcase</motif>
+    <name>Reload_Batch__c</name>
+</CustomTab>
