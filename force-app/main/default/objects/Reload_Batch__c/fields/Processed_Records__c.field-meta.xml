@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Processed_Records__c</fullName>
-    <description>Number of records that have been attempted from the batch.</description>
+    <description
+  >Number of records that have been attempted from the batch.</description>
     <externalId>false</externalId>
     <label>Processed Records</label>
     <precision>18</precision>

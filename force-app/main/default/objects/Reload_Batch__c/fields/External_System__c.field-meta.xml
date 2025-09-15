@@ -1,7 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8" ?>
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>External_System__c</fullName>
-    <description>Name of the external system that provided the data.</description>
+    <description
+  >Name of the external system that provided the data.</description>
     <externalId>false</externalId>
     <label>External System</label>
     <length>100</length>

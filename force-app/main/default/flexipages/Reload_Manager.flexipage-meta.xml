@@ -3,6 +3,12 @@
     <description
   >Workspace for orchestrating the Reload for Salesforce data load framework.</description>
     <flexiPageRegions>
+        <itemInstances>
+            <componentInstance>
+                <componentName>reloadWorkbench</componentName>
+                <identifier>c_reloadWorkbench</identifier>
+            </componentInstance>
+        </itemInstances>
         <name>main</name>
         <type>Region</type>
     </flexiPageRegions>
