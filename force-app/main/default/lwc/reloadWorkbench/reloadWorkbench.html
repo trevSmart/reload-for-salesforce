@@ -163,6 +163,24 @@
 
     <template if:true={selectedBatch}>
       <lightning-layout-item size="12">
+        <lightning-card title="Pujar registres" icon-name="utility:upload">
+          <div class="slds-var-p-around_small">
+            <p class="slds-text-color_weak slds-var-m-bottom_small">
+              Puja un fitxer CSV relacionat amb el lot seleccionat. El component
+              <code>lightning-file-upload</code> permet fitxers de fins a 2 GB
+              per fitxer.
+            </p>
+            <lightning-file-upload
+              accept={acceptedFormats}
+              label="Selecciona CSV"
+              name="csvUploader"
+              record-id={selectedBatchId}
+              onuploadfinished={handleUploadFinished}
+            ></lightning-file-upload>
+          </div>
+        </lightning-card>
+      </lightning-layout-item>
+      <lightning-layout-item size="12">
         <lightning-card
           title="Registres en memòria intermèdia"
           icon-name="utility:stage"

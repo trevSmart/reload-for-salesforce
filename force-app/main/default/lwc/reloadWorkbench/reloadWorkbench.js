@@ -33,6 +33,8 @@ export default class ReloadWorkbench extends LightningElement {
   selectedStagingId;
   formSubmitRequested = false;
 
+  acceptedFormats = [".csv"];
+
   batchColumns = [
     { label: "Batch", fieldName: "Name", type: "text" },
     { label: "Target Object", fieldName: "Target_Object_API__c", type: "text" },
@@ -277,6 +279,26 @@ export default class ReloadWorkbench extends LightningElement {
       .finally(() => {
         this.fieldValuesLoading = false;
       });
+  }
+
+  handleUploadFinished(event) {
+    const uploadedFiles = event.detail?.files ?? [];
+    const fileNames = uploadedFiles.map((file) => file.name).join(", ");
+    const defaultMessage =
+      uploadedFiles.length > 1
+        ? `S'han pujat ${uploadedFiles.length} fitxers.`
+        : "S'ha pujat el fitxer correctament.";
+    const message = fileNames
+      ? `${defaultMessage} (${fileNames})`
+      : defaultMessage;
+
+    this.dispatchEvent(
+      new ShowToastEvent({
+        title: "Fitxer carregat",
+        message,
+        variant: "success"
+      })
+    );
   }
 
   handleTouchBatch() {
