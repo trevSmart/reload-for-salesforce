@@ -370,6 +370,53 @@
                   ></lightning-button-icon>
                 </div>
               </div>
+              <div class="slds-col slds-size_1-of-1">
+                <div class="slds-grid slds-wrap slds-gutters slds-var-m-top_small">
+                  <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                    <lightning-input
+                      type="number"
+                      label="Mida del lot (scope)"
+                      value={migrationScopeSize}
+                      min="1"
+                      onchange={handleScopeSizeChange}
+                    ></lightning-input>
+                  </div>
+                  <div class="slds-col slds-size_1-of-1 slds-medium-size_1-of-2">
+                    <lightning-input
+                      type="datetime-local"
+                      label="Programa l'execució"
+                      value={scheduledStart}
+                      onchange={handleScheduleTimeChange}
+                    ></lightning-input>
+                  </div>
+                </div>
+                <div
+                  class="slds-var-m-top_small slds-grid slds-wrap slds-grid_vertical-align-center"
+                >
+                  <div class="slds-col slds-size_auto">
+                    <lightning-button
+                      variant="brand"
+                      label="Executar migració"
+                      onclick={handleRunMigration}
+                      disabled={migrationButtonsDisabled}
+                    ></lightning-button>
+                    <lightning-button
+                      class="slds-var-m-left_small"
+                      label="Programar migració"
+                      onclick={handleScheduleMigration}
+                      disabled={scheduleButtonDisabled}
+                    ></lightning-button>
+                  </div>
+                  <template if:true={migrationRunning}>
+                    <div class="slds-col slds-size_auto slds-var-m-left_small">
+                      <lightning-spinner
+                        alternative-text="Processant migració"
+                        size="small"
+                      ></lightning-spinner>
+                    </div>
+                  </template>
+                </div>
+              </div>
             </div>
           </template>
         </div>
