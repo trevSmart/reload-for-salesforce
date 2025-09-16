@@ -7,7 +7,10 @@
     "lint": "eslint force-app/**/*.js --fix",
     "prettier": "prettier --write \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
     "prettier:verify": "prettier --check \"**/*.{cls,cmp,component,css,html,js,json,md,page,trigger,xml,yaml,yml}\"",
-    "precommit": "npm run prettier:verify && npm run lint"
+    "precommit": "npm run prettier:verify && npm run lint",
+    "test": "npm run precommit && npm run deploy:validate",
+    "deploy:validate": "sf project deploy start --dry-run --test-level RunLocalTests --json",
+    "deploy": "sf project deploy start --json"
   },
   "devDependencies": {
     "@babel/core": "^7.28.4",
