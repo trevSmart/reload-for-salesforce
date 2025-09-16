@@ -21,6 +21,15 @@ const TARGET_OBJECT_LABEL = "Target Object API Name";
 const TARGET_LOOKUP_PLACEHOLDER = "Cerca un objecte de Salesforce";
 const TARGET_LOOKUP_REQUIRED_MESSAGE = "Selecciona un objecte de destinació.";
 const TARGET_LOOKUP_SPINNER_TEXT = "Carregant objectes";
+const TARGET_LOOKUP_INPUT_ID = "target-object-lookup";
+const TARGET_LOOKUP_LISTBOX_ID = `${TARGET_LOOKUP_INPUT_ID}-listbox`;
+const TARGET_LOOKUP_LABEL_ID = `${TARGET_LOOKUP_INPUT_ID}-label`;
+const TARGET_LOOKUP_LISTBOX_LABEL_ID = `${TARGET_LOOKUP_INPUT_ID}-listbox-label`;
+const TARGET_LOOKUP_ASSISTIVE_TEXT_ID = `${TARGET_LOOKUP_INPUT_ID}-assistive`;
+const TARGET_LOOKUP_ASSISTIVE_TEXT =
+  "Utilitza les fletxes per navegar pels resultats i prem Retorn per seleccionar.";
+const TARGET_LOOKUP_RESULTS_LABEL = "Resultats de la cerca";
+const TARGET_LOOKUP_SELECTION_LABEL = "Objecte de destinació seleccionat";
 
 export default class ReloadWorkbench extends LightningElement {
   @track batches;
@@ -41,10 +50,12 @@ export default class ReloadWorkbench extends LightningElement {
   targetObjectApi;
   targetLookupSearchTerm = "";
   targetLookupFocused = false;
+  targetLookupDropdownOpen = false;
   targetLookupLoading = false;
   targetLookupErrorMessage;
   targetLookupSearchError;
   latestTargetLookupRequest = 0;
+  targetLookupHighlightedIndex = -1;
 
   selectedBatchId;
   selectedStagingId;
@@ -109,6 +120,38 @@ export default class ReloadWorkbench extends LightningElement {
     return TARGET_LOOKUP_SPINNER_TEXT;
   }
 
+  get targetLookupInputId() {
+    return TARGET_LOOKUP_INPUT_ID;
+  }
+
+  get targetLookupListboxId() {
+    return TARGET_LOOKUP_LISTBOX_ID;
+  }
+
+  get targetLookupLabelId() {
+    return TARGET_LOOKUP_LABEL_ID;
+  }
+
+  get targetLookupListboxLabelId() {
+    return TARGET_LOOKUP_LISTBOX_LABEL_ID;
+  }
+
+  get targetLookupAssistiveTextId() {
+    return TARGET_LOOKUP_ASSISTIVE_TEXT_ID;
+  }
+
+  get targetLookupAssistiveText() {
+    return TARGET_LOOKUP_ASSISTIVE_TEXT;
+  }
+
+  get targetLookupResultsLabel() {
+    return TARGET_LOOKUP_RESULTS_LABEL;
+  }
+
+  get targetLookupSelectionListLabel() {
+    return TARGET_LOOKUP_SELECTION_LABEL;
+  }
+
   get targetLookupFormElementClass() {
     const baseClass = "slds-form-element slds-lookup";
     return this.targetLookupErrorMessage
@@ -139,6 +182,21 @@ export default class ReloadWorkbench extends LightningElement {
     return this.targetLookupDropdownVisible ? "true" : "false";
   }
 
+  get targetLookupAriaLabelledby() {
+    return `${this.targetLookupLabelId} ${this.targetLookupListboxLabelId}`;
+  }
+
+  get targetLookupActiveOptionId() {
+    if (
+      this.targetLookupHighlightedIndex < 0 ||
+      !Array.isArray(this.targetLookupOptions)
+    ) {
+      return null;
+    }
+    const option = this.targetLookupOptions[this.targetLookupHighlightedIndex];
+    return option ? option.id : null;
+  }
+
   get hasTargetObjectSelection() {
     return !!(
       this.targetObjectSelection &&
@@ -148,7 +206,11 @@ export default class ReloadWorkbench extends LightningElement {
   }
 
   get targetLookupDropdownVisible() {
-    return this.targetLookupFocused && !this.hasTargetObjectSelection;
+    return (
+      this.targetLookupDropdownOpen &&
+      this.targetLookupFocused &&
+      !this.hasTargetObjectSelection
+    );
   }
 
   get targetLookupListHasOptions() {
@@ -399,7 +461,15 @@ export default class ReloadWorkbench extends LightningElement {
 
   handleTargetLookupFocus() {
     this.targetLookupFocused = true;
+    this.targetLookupDropdownOpen = true;
     this.targetLookupErrorMessage = undefined;
+    if (
+      Array.isArray(this.targetLookupOptions) &&
+      this.targetLookupOptions.length > 0 &&
+      this.targetLookupHighlightedIndex < 0
+    ) {
+      this.updateTargetLookupActiveOption(0);
+    }
     if (
       !this.hasTargetObjectSelection &&
       (!this.targetLookupListHasOptions || this.targetLookupSearchError)
@@ -410,41 +480,94 @@ export default class ReloadWorkbench extends LightningElement {
 
   handleTargetLookupInput(event) {
     this.targetLookupFocused = true;
+    this.targetLookupDropdownOpen = true;
     this.targetLookupSearchTerm = event.target.value;
     this.targetLookupErrorMessage = undefined;
+    this.updateTargetLookupActiveOption(-1);
     this.performTargetLookupSearch(this.targetLookupSearchTerm);
+  }
+
+  handleTargetLookupKeyDown(event) {
+    if (this.hasTargetObjectSelection) {
+      return;
+    }
+    switch (event.key) {
+      case "ArrowDown":
+        event.preventDefault();
+        this.targetLookupDropdownOpen = true;
+        this.moveTargetLookupHighlight(1);
+        break;
+      case "ArrowUp":
+        event.preventDefault();
+        this.targetLookupDropdownOpen = true;
+        this.moveTargetLookupHighlight(-1);
+        break;
+      case "Enter":
+        if (
+          this.targetLookupDropdownVisible &&
+          this.targetLookupHighlightedIndex >= 0
+        ) {
+          event.preventDefault();
+          this.selectTargetLookupOptionByIndex(
+            this.targetLookupHighlightedIndex
+          );
+        }
+        break;
+      case "Escape":
+        if (this.targetLookupDropdownVisible) {
+          event.preventDefault();
+          this.targetLookupDropdownOpen = false;
+          this.updateTargetLookupActiveOption(-1);
+        }
+        break;
+      default:
+        break;
+    }
   }
 
   handleTargetLookupBlur() {
     this.targetLookupFocused = false;
+    this.targetLookupDropdownOpen = false;
+    this.updateTargetLookupActiveOption(-1);
   }
 
   handleTargetLookupOptionMouseDown(event) {
     event.preventDefault();
   }
 
-  handleTargetLookupSelect(event) {
-    event.preventDefault();
-    const value = event.currentTarget.dataset.value;
-    if (!value) {
+  handleTargetLookupOptionMouseEnter(event) {
+    const indexAttr = event.currentTarget.dataset.index;
+    if (indexAttr === undefined) {
       return;
     }
-    const option = this.targetLookupOptions.find(
-      (item) => item.apiName === value
-    ) || {
-      apiName: value,
-      label: event.currentTarget.dataset.label || value,
-      iconName: "standard:default"
-    };
-    this.targetObjectSelection = option;
-    this.targetObjectApi = option.apiName;
-    this.targetLookupSearchTerm = "";
-    this.targetLookupOptions = [];
-    this.targetLookupErrorMessage = undefined;
-    this.targetLookupSearchError = undefined;
-    this.targetLookupLoading = false;
-    this.targetLookupFocused = false;
-    this.latestTargetLookupRequest += 1;
+    const index = parseInt(indexAttr, 10);
+    if (Number.isNaN(index)) {
+      return;
+    }
+    this.updateTargetLookupActiveOption(index);
+  }
+
+  handleTargetLookupSelect(event) {
+    event.preventDefault();
+    const indexAttr = event.currentTarget.dataset.index;
+    if (indexAttr === undefined) {
+      const value = event.currentTarget.dataset.value;
+      if (!value) {
+        return;
+      }
+      const option = this.targetLookupOptions.find(
+        (item) => item.apiName === value
+      );
+      if (option) {
+        this.selectTargetLookupOption(option);
+      }
+      return;
+    }
+    const index = parseInt(indexAttr, 10);
+    if (Number.isNaN(index)) {
+      return;
+    }
+    this.selectTargetLookupOptionByIndex(index);
   }
 
   handleTargetLookupRemove() {
@@ -453,11 +576,145 @@ export default class ReloadWorkbench extends LightningElement {
     this.targetLookupErrorMessage = undefined;
     this.targetLookupSearchError = undefined;
     this.targetLookupSearchTerm = "";
-    this.targetLookupOptions = [];
+    this.clearTargetLookupOptions();
     this.targetLookupFocused = true;
+    this.targetLookupDropdownOpen = true;
     this.latestTargetLookupRequest += 1;
     this.focusTargetLookupInput();
     this.performTargetLookupSearch(this.targetLookupSearchTerm);
+  }
+
+  selectTargetLookupOptionByIndex(index) {
+    if (!Array.isArray(this.targetLookupOptions)) {
+      return;
+    }
+    const option = this.targetLookupOptions[index];
+    if (option) {
+      this.selectTargetLookupOption(option);
+    }
+  }
+
+  selectTargetLookupOption(option) {
+    if (!option || typeof option.apiName !== "string") {
+      return;
+    }
+    const selection = {
+      apiName: option.apiName,
+      label: option.label || option.apiName,
+      iconName: option.iconName || "standard:default"
+    };
+    this.targetObjectSelection = selection;
+    this.targetObjectApi = selection.apiName;
+    this.targetLookupSearchTerm = "";
+    this.clearTargetLookupOptions();
+    this.targetLookupDropdownOpen = false;
+    this.targetLookupErrorMessage = undefined;
+    this.targetLookupSearchError = undefined;
+    this.targetLookupLoading = false;
+    this.targetLookupFocused = false;
+    this.latestTargetLookupRequest += 1;
+  }
+
+  moveTargetLookupHighlight(step) {
+    if (
+      !Array.isArray(this.targetLookupOptions) ||
+      this.targetLookupOptions.length === 0
+    ) {
+      return;
+    }
+    const optionsLength = this.targetLookupOptions.length;
+    let nextIndex = this.targetLookupHighlightedIndex;
+    if (nextIndex < 0) {
+      nextIndex = step > 0 ? 0 : optionsLength - 1;
+    } else {
+      nextIndex = (nextIndex + step + optionsLength) % optionsLength;
+    }
+    this.updateTargetLookupActiveOption(nextIndex);
+  }
+
+  setTargetLookupOptions(results) {
+    const rawOptions = Array.isArray(results) ? results : [];
+    const sanitizedOptions = rawOptions.filter(
+      (item) => item && typeof item.apiName === "string"
+    );
+    const activeIndex = sanitizedOptions.length > 0 ? 0 : -1;
+    this.targetLookupOptions = sanitizedOptions.map((item, index) =>
+      this.createTargetLookupOption(item, index, activeIndex)
+    );
+    this.targetLookupHighlightedIndex = activeIndex;
+  }
+
+  createTargetLookupOption(item, index, activeIndex) {
+    const label =
+      item && typeof item.label === "string" && item.label
+        ? item.label
+        : item.apiName;
+    const iconName =
+      item && typeof item.iconName === "string" && item.iconName
+        ? item.iconName
+        : "standard:default";
+    const isActive = index === activeIndex;
+    return {
+      apiName: item.apiName,
+      label,
+      iconName,
+      id: `${TARGET_LOOKUP_LISTBOX_ID}-option-${index}`,
+      isActive,
+      className: this.getTargetLookupOptionClasses(isActive),
+      ariaSelected: isActive ? "true" : "false"
+    };
+  }
+
+  getTargetLookupOptionClasses(isActive) {
+    const classes = [
+      "slds-media",
+      "slds-listbox__option",
+      "slds-listbox__option_entity",
+      "slds-listbox__option_has-meta",
+      "slds-media_small"
+    ];
+    if (isActive) {
+      classes.push("slds-has-focus");
+      classes.push("slds-is-active");
+    }
+    return classes.join(" ");
+  }
+
+  updateTargetLookupActiveOption(index) {
+    if (
+      !Array.isArray(this.targetLookupOptions) ||
+      this.targetLookupOptions.length === 0
+    ) {
+      this.targetLookupHighlightedIndex = -1;
+      return;
+    }
+    const lastIndex = this.targetLookupOptions.length - 1;
+    let nextIndex = index;
+    if (nextIndex < 0) {
+      nextIndex = -1;
+    } else if (nextIndex > lastIndex) {
+      nextIndex = lastIndex;
+    }
+    this.targetLookupHighlightedIndex = nextIndex;
+  }
+
+  get targetLookupOptionsWithState() {
+    if (!Array.isArray(this.targetLookupOptions)) {
+      return [];
+    }
+    const highlighted = this.targetLookupHighlightedIndex;
+    return this.targetLookupOptions.map((option, optionIndex) => {
+      const isActive = optionIndex === highlighted;
+      return Object.assign({}, option, {
+        isActive,
+        className: this.getTargetLookupOptionClasses(isActive),
+        ariaSelected: isActive ? "true" : "false"
+      });
+    });
+  }
+  clearTargetLookupOptions() {
+    this.targetLookupOptions = [];
+    this.targetLookupHighlightedIndex = -1;
   }
 
   performTargetLookupSearch(rawSearchTerm) {
@@ -466,6 +723,7 @@ export default class ReloadWorkbench extends LightningElement {
     }
     const searchTerm = rawSearchTerm ? rawSearchTerm.trim() : "";
     const requestToken = ++this.latestTargetLookupRequest;
+    this.targetLookupDropdownOpen = true;
     this.targetLookupLoading = true;
     this.targetLookupSearchError = undefined;
     searchTargetObjects({
@@ -477,20 +735,16 @@ export default class ReloadWorkbench extends LightningElement {
           return;
         }
         if (Array.isArray(results)) {
-          this.targetLookupOptions = results.map((item) => ({
-            apiName: item.apiName,
-            label: item.label || item.apiName,
-            iconName: item.iconName || "standard:default"
-          }));
+          this.setTargetLookupOptions(results);
         } else {
-          this.targetLookupOptions = [];
+          this.clearTargetLookupOptions();
         }
       })
       .catch((error) => {
         if (requestToken !== this.latestTargetLookupRequest) {
           return;
         }
-        this.targetLookupOptions = [];
+        this.clearTargetLookupOptions();
         this.targetLookupSearchError = this.reduceError(error);
       })
       .finally(() => {
@@ -515,11 +769,12 @@ export default class ReloadWorkbench extends LightningElement {
     this.targetObjectSelection = undefined;
     this.targetObjectApi = undefined;
     this.targetLookupSearchTerm = "";
-    this.targetLookupOptions = [];
+    this.clearTargetLookupOptions();
     this.targetLookupErrorMessage = undefined;
     this.targetLookupSearchError = undefined;
     this.targetLookupLoading = false;
     this.targetLookupFocused = false;
+    this.targetLookupDropdownOpen = false;
     this.latestTargetLookupRequest = 0;
   }
 
