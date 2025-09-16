@@ -696,18 +696,22 @@ export default class ReloadWorkbench extends LightningElement {
       nextIndex = lastIndex;
     }
     this.targetLookupHighlightedIndex = nextIndex;
-    this.targetLookupOptions = this.targetLookupOptions.map(
-      (option, optionIndex) =>
-        Object.assign({}, option, {
-          isActive: optionIndex === nextIndex,
-          className: this.getTargetLookupOptionClasses(
-            optionIndex === nextIndex
-          ),
-          ariaSelected: optionIndex === nextIndex ? "true" : "false"
-        })
-    );
   }
 
+  get targetLookupOptionsWithState() {
+    if (!Array.isArray(this.targetLookupOptions)) {
+      return [];
+    }
+    const highlighted = this.targetLookupHighlightedIndex;
+    return this.targetLookupOptions.map((option, optionIndex) => {
+      const isActive = optionIndex === highlighted;
+      return Object.assign({}, option, {
+        isActive,
+        className: this.getTargetLookupOptionClasses(isActive),
+        ariaSelected: isActive ? "true" : "false"
+      });
+    });
+  }
   clearTargetLookupOptions() {
     this.targetLookupOptions = [];
     this.targetLookupHighlightedIndex = -1;
