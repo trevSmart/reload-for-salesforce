@@ -34,14 +34,22 @@ private class ReloadStagingMigrationBatchTest {
     String jobId = ReloadWorkspaceController.runMigrationNow(batch.Id, 50);
     Test.stopTest();
 
-    System.assertNotEquals(null, jobId, 'Job Id should be returned for immediate execution');
+    System.assertNotEquals(
+      null,
+      jobId,
+      'Job Id should be returned for immediate execution'
+    );
 
     Account[] insertedAccounts = [
       SELECT Name
       FROM Account
       WHERE Name = 'Reload Account Immediate'
     ];
-    System.assertEquals(1, insertedAccounts.size(), 'The Account record should be inserted');
+    System.assertEquals(
+      1,
+      insertedAccounts.size(),
+      'The Account record should be inserted'
+    );
 
     Reload_Staging__c updatedStaging = [
       SELECT Status__c, Error_Message__c
@@ -49,8 +57,16 @@ private class ReloadStagingMigrationBatchTest {
       WHERE Id = :staging.Id
       LIMIT 1
     ];
-    System.assertEquals('Success', updatedStaging.Status__c, 'Staging record should be marked as success');
-    System.assertEquals(null, updatedStaging.Error_Message__c, 'Staging record should not store errors');
+    System.assertEquals(
+      'Success',
+      updatedStaging.Status__c,
+      'Staging record should be marked as success'
+    );
+    System.assertEquals(
+      null,
+      updatedStaging.Error_Message__c,
+      'Staging record should not store errors'
+    );
 
     Reload_Batch__c updatedBatch = [
       SELECT Status__c, Processed_Records__c, Error_Count__c, Total_Records__c
@@ -58,10 +74,26 @@ private class ReloadStagingMigrationBatchTest {
       WHERE Id = :batch.Id
       LIMIT 1
     ];
-    System.assertEquals('Completed', updatedBatch.Status__c, 'Batch should be marked as completed');
-    System.assertEquals(1, updatedBatch.Processed_Records__c, 'Processed counter should record successes');
-    System.assertEquals(0, updatedBatch.Error_Count__c, 'Error counter should be zero');
-    System.assertEquals(1, updatedBatch.Total_Records__c, 'Total records should match the processed staging rows');
+    System.assertEquals(
+      'Completed',
+      updatedBatch.Status__c,
+      'Batch should be marked as completed'
+    );
+    System.assertEquals(
+      1,
+      updatedBatch.Processed_Records__c,
+      'Processed counter should record successes'
+    );
+    System.assertEquals(
+      0,
+      updatedBatch.Error_Count__c,
+      'Error counter should be zero'
+    );
+    System.assertEquals(
+      1,
+      updatedBatch.Total_Records__c,
+      'Total records should match the processed staging rows'
+    );
   }
 
   @IsTest
@@ -115,7 +147,11 @@ private class ReloadStagingMigrationBatchTest {
     );
     Test.stopTest();
 
-    System.assertNotEquals(null, jobId, 'Job Id should be returned for scheduled execution');
+    System.assertNotEquals(
+      null,
+      jobId,
+      'Job Id should be returned for scheduled execution'
+    );
 
     Account refreshedAccount = [
       SELECT Name
@@ -123,7 +159,11 @@ private class ReloadStagingMigrationBatchTest {
       WHERE Id = :existingAccount.Id
       LIMIT 1
     ];
-    System.assertEquals('Account Programat', refreshedAccount.Name, 'Scheduled job should update the Account name');
+    System.assertEquals(
+      'Account Programat',
+      refreshedAccount.Name,
+      'Scheduled job should update the Account name'
+    );
 
     Reload_Staging__c updatedStaging = [
       SELECT Status__c, Error_Message__c
@@ -131,8 +171,16 @@ private class ReloadStagingMigrationBatchTest {
       WHERE Id = :staging.Id
       LIMIT 1
     ];
-    System.assertEquals('Success', updatedStaging.Status__c, 'Staging record should be marked as success after scheduled run');
-    System.assertEquals(null, updatedStaging.Error_Message__c, 'No error should be stored for a successful run');
+    System.assertEquals(
+      'Success',
+      updatedStaging.Status__c,
+      'Staging record should be marked as success after scheduled run'
+    );
+    System.assertEquals(
+      null,
+      updatedStaging.Error_Message__c,
+      'No error should be stored for a successful run'
+    );
 
     Reload_Batch__c updatedBatch = [
       SELECT Status__c, Processed_Records__c, Error_Count__c
@@ -140,8 +188,20 @@ private class ReloadStagingMigrationBatchTest {
       WHERE Id = :batch.Id
       LIMIT 1
     ];
-    System.assertEquals('Completed', updatedBatch.Status__c, 'Batch should be completed after the scheduled run');
-    System.assertEquals(1, updatedBatch.Processed_Records__c, 'Processed counter should be incremented');
-    System.assertEquals(0, updatedBatch.Error_Count__c, 'Scheduled execution should not register errors');
+    System.assertEquals(
+      'Completed',
+      updatedBatch.Status__c,
+      'Batch should be completed after the scheduled run'
+    );
+    System.assertEquals(
+      1,
+      updatedBatch.Processed_Records__c,
+      'Processed counter should be incremented'
+    );
+    System.assertEquals(
+      0,
+      updatedBatch.Error_Count__c,
+      'Scheduled execution should not register errors'
+    );
   }
 }

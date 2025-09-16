@@ -225,7 +225,8 @@ public with sharing class ReloadWorkspaceController {
       batchId,
       normalizedScope
     );
-    String jobName = 'ReloadMigration-' + String.valueOf(System.currentTimeMillis());
+    String jobName =
+      'ReloadMigration-' + String.valueOf(System.currentTimeMillis());
     String cronExpression = buildCronExpression(scheduledTime);
     return System.schedule(jobName, cronExpression, job);
   }

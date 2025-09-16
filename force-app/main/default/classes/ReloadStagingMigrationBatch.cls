@@ -14,7 +14,8 @@ public with sharing class ReloadStagingMigrationBatch implements Database.Batcha
   }
 
   public void execute(SchedulableContext context) {
-    Integer size = scopeSize != null && scopeSize > 0
+    Integer size = scopeSize != null &&
+      scopeSize > 0
       ? scopeSize
       : DEFAULT_SCOPE_SIZE;
     Database.executeBatch(this, size);
@@ -22,7 +23,9 @@ public with sharing class ReloadStagingMigrationBatch implements Database.Batcha
 
   public Database.QueryLocator start(Database.BatchableContext context) {
     if (batchId == null) {
-      throw new MigrationException('Batch Id is required to run the migration.');
+      throw new MigrationException(
+        'Batch Id is required to run the migration.'
+      );
     }
 
     batchRecord = [
@@ -34,21 +37,27 @@ public with sharing class ReloadStagingMigrationBatch implements Database.Batcha
 
     update new Reload_Batch__c(Id = batchId, Status__c = 'Processing');
 
-    return Database.getQueryLocator([
-      SELECT
-        Id,
-        Record_Action__c,
-        Target_Object_API__c,
-        External_Id_Field__c,
-        Status__c
-      FROM Reload_Staging__c
-      WHERE Batch__c = :batchId AND
-        Status__c NOT IN ('Success', 'Skipped', 'Processing')
-      ORDER BY Source_Row_Number__c ASC, CreatedDate ASC
-    ]);
+    return Database.getQueryLocator(
+      [
+        SELECT
+          Id,
+          Record_Action__c,
+          Target_Object_API__c,
+          External_Id_Field__c,
+          Status__c
+        FROM Reload_Staging__c
+        WHERE
+          Batch__c = :batchId
+          AND Status__c NOT IN ('Success', 'Skipped', 'Processing')
+        ORDER BY Source_Row_Number__c ASC, CreatedDate ASC
+      ]
+    );
   }
 
-  public void execute(Database.BatchableContext context, List<Reload_Staging__c> scope) {
+  public void execute(
+    Database.BatchableContext context,
+    List<Reload_Staging__c> scope
+  ) {
     if (scope.isEmpty()) {
       return;
     }
@@ -85,7 +94,9 @@ public with sharing class ReloadStagingMigrationBatch implements Database.Batcha
 
     for (Reload_Staging__c stagingRecord : scope) {
       processedCount++;
-      Reload_Staging__c stagingUpdate = new Reload_Staging__c(Id = stagingRecord.Id);
+      Reload_Staging__c stagingUpdate = new Reload_Staging__c(
+        Id = stagingRecord.Id
+      );
 
       try {
         processSingleStagingRecord(
@@ -137,7 +148,8 @@ public with sharing class ReloadStagingMigrationBatch implements Database.Batcha
       );
     }
 
-    Schema.SObjectType targetType = Schema.getGlobalDescribe().get(targetApiName);
+    Schema.SObjectType targetType = Schema.getGlobalDescribe()
+      .get(targetApiName);
     if (targetType == null) {
       throw new MigrationException(
         'L\'objecte de destinació ' + targetApiName + ' no existeix a l\'org.'
@@ -185,29 +197,24 @@ public with sharing class ReloadStagingMigrationBatch implements Database.Batcha
       }
     }
 
-    switch on operation {
-      when Operation.Insert {
-        performInsert(targetRecord);
+    if (operation == 'Insert') {
+      performInsert(targetRecord);
+    } else if (operation == 'Update') {
+      if (targetId == null) {
+        throw new MigrationException(
+          'Cal proporcionar un Id per poder actualitzar el registre.'
+        );
       }
-      when Operation.Update {
-        if (targetId == null) {
-          throw new MigrationException(
-            'Cal proporcionar un Id per poder actualitzar el registre.'
-          );
-        }
-        performUpdate(targetRecord);
+      performUpdate(targetRecord);
+    } else if (operation == 'Upsert') {
+      performUpsert(targetRecord, stagingRecord, fieldDescribeMap);
+    } else if (operation == 'Delete') {
+      if (targetId == null) {
+        throw new MigrationException(
+          'Cal proporcionar un Id per poder eliminar el registre.'
+        );
       }
-      when Operation.Upsert {
-        performUpsert(targetRecord, stagingRecord, fieldDescribeMap);
-      }
-      when Operation.Delete {
-        if (targetId == null) {
-          throw new MigrationException(
-            'Cal proporcionar un Id per poder eliminar el registre.'
-          );
-        }
-        performDelete(targetRecord);
-      }
+      performDelete(targetRecord);
     }
   }
 
@@ -245,8 +252,8 @@ public with sharing class ReloadStagingMigrationBatch implements Database.Batcha
       if (externalField == null) {
         throw new MigrationException(
           'El camp d\'identificador extern ' +
-          stagingRecord.External_Id_Field__c +
-          ' no existeix a l\'objecte.'
+            stagingRecord.External_Id_Field__c +
+            ' no existeix a l\'objecte.'
         );
       }
       Database.UpsertResult[] results = Database.upsert(
@@ -265,7 +272,7 @@ public with sharing class ReloadStagingMigrationBatch implements Database.Batcha
     }
   }
 
-  private Operation resolveOperation(Reload_Staging__c stagingRecord) {
+  private String resolveOperation(Reload_Staging__c stagingRecord) {
     String requestedOperation = !String.isBlank(stagingRecord.Record_Action__c)
       ? stagingRecord.Record_Action__c
       : batchRecord.Default_Operation__c;
@@ -278,16 +285,16 @@ public with sharing class ReloadStagingMigrationBatch implements Database.Batcha
 
     String normalized = requestedOperation.trim().toLowerCase();
     if (normalized == 'insert') {
-      return Operation.Insert;
+      return 'Insert';
     }
     if (normalized == 'update') {
-      return Operation.Update;
+      return 'Update';
     }
     if (normalized == 'upsert') {
-      return Operation.Upsert;
+      return 'Upsert';
     }
     if (normalized == 'delete') {
-      return Operation.Delete;
+      return 'Delete';
     }
 
     throw new MigrationException(
@@ -297,36 +304,31 @@ public with sharing class ReloadStagingMigrationBatch implements Database.Batcha
 
   private void validateCrudAccess(
     Schema.DescribeSObjectResult describe,
-    Operation operation
+    String operation
   ) {
-    switch on operation {
-      when Operation.Insert {
-        if (!describe.isCreateable()) {
-          throw new MigrationException(
-            'No tens permisos per crear registres a l\'objecte de destinació.'
-          );
-        }
+    if (operation == 'Insert') {
+      if (!describe.isCreateable()) {
+        throw new MigrationException(
+          'No tens permisos per crear registres a l\'objecte de destinació.'
+        );
       }
-      when Operation.Update {
-        if (!describe.isUpdateable()) {
-          throw new MigrationException(
-            'No tens permisos per actualitzar registres a l\'objecte de destinació.'
-          );
-        }
+    } else if (operation == 'Update') {
+      if (!describe.isUpdateable()) {
+        throw new MigrationException(
+          'No tens permisos per actualitzar registres a l\'objecte de destinació.'
+        );
       }
-      when Operation.Delete {
-        if (!describe.isDeletable()) {
-          throw new MigrationException(
-            'No tens permisos per eliminar registres a l\'objecte de destinació.'
-          );
-        }
+    } else if (operation == 'Delete') {
+      if (!describe.isDeletable()) {
+        throw new MigrationException(
+          'No tens permisos per eliminar registres a l\'objecte de destinació.'
+        );
       }
-      when Operation.Upsert {
-        if (!describe.isCreateable() && !describe.isUpdateable()) {
-          throw new MigrationException(
-            'Cal permís de creació o actualització per executar un upsert.'
-          );
-        }
+    } else if (operation == 'Upsert') {
+      if (!describe.isCreateable() && !describe.isUpdateable()) {
+        throw new MigrationException(
+          'Cal permís de creació o actualització per executar un upsert.'
+        );
       }
     }
   }
@@ -354,71 +356,51 @@ public with sharing class ReloadStagingMigrationBatch implements Database.Batcha
     }
 
     try {
-      switch on displayType {
-        when Schema.DisplayType.Boolean {
-          return trimmedValue.equalsIgnoreCase('true') || trimmedValue == '1';
-        }
-        when Schema.DisplayType.Date {
-          return Date.valueOf(trimmedValue);
-        }
-        when Schema.DisplayType.Datetime {
-          return Datetime.valueOf(trimmedValue);
-        }
-        when Schema.DisplayType.Double {
-          return Decimal.valueOf(trimmedValue);
-        }
-        when Schema.DisplayType.Currency {
-          return Decimal.valueOf(trimmedValue);
-        }
-        when Schema.DisplayType.Percent {
-          return Decimal.valueOf(trimmedValue);
-        }
-        when Schema.DisplayType.Integer {
-          return Integer.valueOf(trimmedValue);
-        }
-        when Schema.DisplayType.Long {
-          return Long.valueOf(trimmedValue);
-        }
-        when Schema.DisplayType.Time {
-          return Time.valueOf(trimmedValue);
-        }
-        when Schema.DisplayType.Id {
-          return (Id) trimmedValue;
-        }
-        when Schema.DisplayType.Location {
-          return JSON.deserializeUntyped(trimmedValue);
-        }
-        when Schema.DisplayType.Base64 {
-          return EncodingUtil.base64Decode(trimmedValue);
-        }
-        when Schema.DisplayType.String {
-          return rawValue;
-        }
-        when Schema.DisplayType.TextArea {
-          return rawValue;
-        }
-        when Schema.DisplayType.Email {
-          return rawValue;
-        }
-        when Schema.DisplayType.Phone {
-          return rawValue;
-        }
-        when Schema.DisplayType.URL {
-          return rawValue;
-        }
-        when Schema.DisplayType.EncryptedText {
-          return rawValue;
-        }
-        when else {
-          return rawValue;
-        }
+      if (displayType == Schema.DisplayType.Boolean) {
+        return trimmedValue.equalsIgnoreCase('true') || trimmedValue == '1';
+      } else if (displayType == Schema.DisplayType.Date) {
+        return Date.valueOf(trimmedValue);
+      } else if (displayType == Schema.DisplayType.Datetime) {
+        return Datetime.valueOf(trimmedValue);
+      } else if (displayType == Schema.DisplayType.Double) {
+        return Decimal.valueOf(trimmedValue);
+      } else if (displayType == Schema.DisplayType.Currency) {
+        return Decimal.valueOf(trimmedValue);
+      } else if (displayType == Schema.DisplayType.Percent) {
+        return Decimal.valueOf(trimmedValue);
+      } else if (displayType == Schema.DisplayType.Integer) {
+        return Integer.valueOf(trimmedValue);
+      } else if (displayType == Schema.DisplayType.Long) {
+        return Long.valueOf(trimmedValue);
+      } else if (displayType == Schema.DisplayType.Time) {
+        return Time.valueOf(trimmedValue);
+      } else if (displayType == Schema.DisplayType.Id) {
+        return (Id) trimmedValue;
+      } else if (displayType == Schema.DisplayType.Location) {
+        return JSON.deserializeUntyped(trimmedValue);
+      } else if (displayType == Schema.DisplayType.Base64) {
+        return EncodingUtil.base64Decode(trimmedValue);
+      } else if (displayType == Schema.DisplayType.String) {
+        return rawValue;
+      } else if (displayType == Schema.DisplayType.TextArea) {
+        return rawValue;
+      } else if (displayType == Schema.DisplayType.Email) {
+        return rawValue;
+      } else if (displayType == Schema.DisplayType.Phone) {
+        return rawValue;
+      } else if (displayType == Schema.DisplayType.URL) {
+        return rawValue;
+      } else if (displayType == Schema.DisplayType.EncryptedText) {
+        return rawValue;
+      } else {
+        return rawValue;
       }
     } catch (Exception conversionError) {
       throw new MigrationException(
         'No s\'ha pogut convertir el valor per al camp ' +
-        fieldDescribe.getName() +
-        ': ' +
-        conversionError.getMessage()
+          fieldDescribe.getName() +
+          ': ' +
+          conversionError.getMessage()
       );
     }
   }
@@ -447,12 +429,6 @@ public with sharing class ReloadStagingMigrationBatch implements Database.Batcha
       : message;
   }
 
-  private enum Operation {
-    Insert,
-    Update,
-    Upsert,
-    Delete
+  public class MigrationException extends Exception {
   }
-
-  public class MigrationException extends Exception {}
 }
