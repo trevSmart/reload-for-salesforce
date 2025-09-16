@@ -185,4 +185,76 @@ public with sharing class ReloadWorkspaceController {
 
     return matches;
   }
+
+  @AuraEnabled
+  public static String runMigrationNow(Id batchId, Integer scopeSize) {
+    if (batchId == null) {
+      throw new AuraHandledException('Batch Id is required.');
+    }
+
+    Integer normalizedScope = normalizeScopeSize(scopeSize);
+    ReloadStagingMigrationBatch job = new ReloadStagingMigrationBatch(
+      batchId,
+      normalizedScope
+    );
+    return Database.executeBatch(job, normalizedScope);
+  }
+
+  @AuraEnabled
+  public static String scheduleMigration(
+    Id batchId,
+    Datetime scheduledTime,
+    Integer scopeSize
+  ) {
+    if (batchId == null) {
+      throw new AuraHandledException('Batch Id is required.');
+    }
+    if (scheduledTime == null) {
+      throw new AuraHandledException(
+        'Cal indicar una data i hora per programar la migració.'
+      );
+    }
+    if (scheduledTime <= System.now()) {
+      throw new AuraHandledException(
+        'La data programada ha de ser posterior al moment actual.'
+      );
+    }
+
+    Integer normalizedScope = normalizeScopeSize(scopeSize);
+    ReloadStagingMigrationBatch job = new ReloadStagingMigrationBatch(
+      batchId,
+      normalizedScope
+    );
+    String jobName = 'ReloadMigration-' + String.valueOf(System.currentTimeMillis());
+    String cronExpression = buildCronExpression(scheduledTime);
+    return System.schedule(jobName, cronExpression, job);
+  }
+
+  private static Integer normalizeScopeSize(Integer scopeSize) {
+    Integer defaultScope = ReloadStagingMigrationBatch.DEFAULT_SCOPE_SIZE;
+    if (scopeSize == null || scopeSize <= 0) {
+      return defaultScope;
+    }
+    Integer normalized = scopeSize;
+    Integer maxScope = 2000;
+    if (normalized > maxScope) {
+      normalized = maxScope;
+    }
+    return normalized;
+  }
+
+  private static String buildCronExpression(Datetime scheduledTime) {
+    Datetime runTime = scheduledTime;
+    return String.format(
+      '{0} {1} {2} {3} {4} ? {5}',
+      new List<Object>{
+        runTime.second(),
+        runTime.minute(),
+        runTime.hour(),
+        runTime.day(),
+        runTime.month(),
+        runTime.year()
+      }
+    );
+  }
 }

@@ -7,6 +7,8 @@ import fetchStagingRecords from "@salesforce/apex/ReloadWorkspaceController.fetc
 import fetchFieldValues from "@salesforce/apex/ReloadWorkspaceController.fetchFieldValues";
 import searchTargetObjects from "@salesforce/apex/ReloadWorkspaceController.searchTargetObjects";
 import touchBatch from "@salesforce/apex/ReloadWorkspaceController.touchBatch";
+import runMigrationNow from "@salesforce/apex/ReloadWorkspaceController.runMigrationNow";
+import scheduleMigration from "@salesforce/apex/ReloadWorkspaceController.scheduleMigration";
 
 import TARGET_OBJECT_FIELD from "@salesforce/schema/Reload_Batch__c.Target_Object_API__c";
 import DEFAULT_OPERATION_FIELD from "@salesforce/schema/Reload_Batch__c.Default_Operation__c";
@@ -30,6 +32,7 @@ const TARGET_LOOKUP_ASSISTIVE_TEXT =
   "Utilitza les fletxes per navegar pels resultats i prem Retorn per seleccionar.";
 const TARGET_LOOKUP_RESULTS_LABEL = "Resultats de la cerca";
 const TARGET_LOOKUP_SELECTION_LABEL = "Objecte de destinació seleccionat";
+const DEFAULT_MIGRATION_SCOPE = 200;
 
 export default class ReloadWorkbench extends LightningElement {
   @track batches;
@@ -62,6 +65,10 @@ export default class ReloadWorkbench extends LightningElement {
   formSubmitRequested = false;
 
   acceptedFormats = [".csv"];
+
+  migrationScopeSize = DEFAULT_MIGRATION_SCOPE;
+  scheduledStart;
+  migrationRunning = false;
 
   batchColumns = [
     { label: "Batch", fieldName: "Name", type: "text" },
@@ -279,6 +286,14 @@ export default class ReloadWorkbench extends LightningElement {
     return this.batches.find((row) => row.Id === this.selectedBatchId);
   }
 
+  get migrationButtonsDisabled() {
+    return !this.selectedBatchId || this.migrationRunning;
+  }
+
+  get scheduleButtonDisabled() {
+    return this.migrationButtonsDisabled || !this.scheduledStart;
+  }
+
   get selectedStaging() {
     if (!this.selectedStagingId || !this.stagingRecords) {
       return undefined;
@@ -394,6 +409,8 @@ export default class ReloadWorkbench extends LightningElement {
     this.selectedStagingId = undefined;
     this.stagingRecords = undefined;
     this.fieldValues = undefined;
+    this.scheduledStart = null;
+    this.migrationRunning = false;
   }
 
   handleRefreshBatches() {
@@ -403,12 +420,117 @@ export default class ReloadWorkbench extends LightningElement {
     }
   }
 
+  handleScopeSizeChange(event) {
+    const rawValue = event?.target?.value;
+    const parsed = Number.parseInt(rawValue, 10);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      this.migrationScopeSize = parsed;
+    } else {
+      this.migrationScopeSize = DEFAULT_MIGRATION_SCOPE;
+    }
+  }
+
+  handleScheduleTimeChange(event) {
+    const value = event?.target?.value;
+    this.scheduledStart = value ? value : null;
+  }
+
+  handleRunMigration() {
+    if (this.migrationButtonsDisabled) {
+      return;
+    }
+    this.migrationRunning = true;
+    runMigrationNow({
+      batchId: this.selectedBatchId,
+      scopeSize: this.migrationScopeSize
+    })
+      .then((jobId) => {
+        const message = jobId
+          ? `S'ha iniciat la migració amb el Job Id ${jobId}.`
+          : "S'ha iniciat la migració dels registres.";
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: "Migració en curs",
+            message,
+            variant: "success"
+          })
+        );
+        if (this.wiredBatchesResult) {
+          refreshApex(this.wiredBatchesResult);
+        }
+        if (this.selectedBatchId) {
+          this.loadStagingRecords(this.selectedBatchId);
+        }
+      })
+      .catch((error) => {
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: "No s'ha pogut iniciar la migració",
+            message: this.reduceError(error),
+            variant: "error"
+          })
+        );
+      })
+      .finally(() => {
+        this.migrationRunning = false;
+      });
+  }
+
+  handleScheduleMigration() {
+    if (!this.selectedBatchId) {
+      return;
+    }
+    if (!this.scheduledStart) {
+      this.dispatchEvent(
+        new ShowToastEvent({
+          title: "Falta la data programada",
+          message: "Indica una data i hora per programar la migració.",
+          variant: "error"
+        })
+      );
+      return;
+    }
+
+    this.migrationRunning = true;
+    scheduleMigration({
+      batchId: this.selectedBatchId,
+      scheduledTime: this.scheduledStart,
+      scopeSize: this.migrationScopeSize
+    })
+      .then((jobId) => {
+        const message = jobId
+          ? `S'ha programat la migració amb el Job Id ${jobId}.`
+          : "S'ha programat la migració dels registres.";
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: "Migració programada",
+            message,
+            variant: "success"
+          })
+        );
+        this.scheduledStart = null;
+      })
+      .catch((error) => {
+        this.dispatchEvent(
+          new ShowToastEvent({
+            title: "No s'ha pogut programar la migració",
+            message: this.reduceError(error),
+            variant: "error"
+          })
+        );
+      })
+      .finally(() => {
+        this.migrationRunning = false;
+      });
+  }
+
   handleBatchSelection(event) {
     const selectedRows = event.detail.selectedRows;
     this.selectedBatchId =
       selectedRows && selectedRows.length ? selectedRows[0].Id : undefined;
     this.selectedStagingId = undefined;
     this.fieldValues = undefined;
+    this.scheduledStart = null;
     if (this.selectedBatchId) {
       this.loadStagingRecords(this.selectedBatchId);
     } else {
