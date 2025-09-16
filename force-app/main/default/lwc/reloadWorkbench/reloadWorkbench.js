@@ -777,7 +777,6 @@ export default class ReloadWorkbench extends LightningElement {
     this.targetLookupDropdownOpen = false;
     this.latestTargetLookupRequest = 0;
   }
-
   handleUploadFinished(event) {
     const uploadedFiles = event.detail?.files ?? [];
     const fileNames = uploadedFiles.map((file) => file.name).join(", ");
