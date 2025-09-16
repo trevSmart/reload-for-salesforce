@@ -1,0 +1,4 @@
+RecordAction,TargetObjectAPI,ExternalId,Name,BillingStreet,BillingCity,BillingCountry,Industry,NumberOfEmployees
+Insert,Account,ACME-001,Acme Corporation,"123 Market St",Barcelona,Spain,Manufacturing,120
+Upsert,Account,ACME-002,Globex Iberia,"56 Passeig de Gracia",Girona,Spain,Technology,45
+Update,Account,ACME-001,Acme Corporation,"123 Market St",Barcelona,Spain,Manufacturing,135
